@@ -1,0 +1,84 @@
+branding:
+  title: "CyberSec Weekly"
+  tagline: "A weekly digest for networking professionals"
+  logo_path: ""
+  issue_start: 1
+
+feeds:
+  - name: "Krebs on Security"
+    url: "https://krebsonsecurity.com/feed/"
+    category: "blogs"
+  - name: "Bleeping Computer"
+    url: "https://www.bleepingcomputer.com/feed/"
+    category: "news"
+  - name: "SANS Internet Storm Center"
+    url: "https://isc.sans.edu/rssfeed.xml"
+    category: "sans"
+  - name: "The Hacker News"
+    url: "https://feeds.feedburner.com/TheHackersNews"
+    category: "news"
+  - name: "Dark Reading"
+    url: "https://www.darkreading.com/rss.xml"
+    category: "news"
+  - name: "Schneier on Security"
+    url: "https://www.schneier.com/feed/atom/"
+    category: "blogs"
+  - name: "CISA Advisories"
+    url: "https://www.cisa.gov/cybersecurity-advisories/all.xml"
+    category: "cves"
+  - name: "SecurityWeek"
+    url: "https://www.securityweek.com/feed/"
+    category: "news"
+  - name: "Threatpost"
+    url: "https://threatpost.com/feed/"
+    category: "news"
+  - name: "Reddit r/netsec"
+    url: "https://www.reddit.com/r/netsec/.rss"
+    category: "community"
+  - name: "Packet Storm Security"
+    url: "https://packetstormsecurity.com/feeds/news/"
+    category: "tools"
+  - name: "Naked Security"
+    url: "https://nakedsecurity.sophos.com/feed/"
+    category: "news"
+  - name: "Microsoft Security Blog"
+    url: "https://www.microsoft.com/en-us/security/blog/feed/"
+    category: "blogs"
+  - name: "Google Project Zero"
+    url: "https://googleprojectzero.blogspot.com/feeds/posts/default?alt=rss"
+    category: "research"
+  - name: "Linux Security"
+    url: "https://www.linuxsecurity.com/static-content/linuxsecurity-atom.xml"
+    category: "news"
+
+podcasts: []
+
+subscribers: []
+
+smtp:
+  host: "localhost"
+  port: 25
+  username: ""
+  password: ""
+  use_tls: false
+  from_address: "digest@localhost"
+  from_name: "CyberSec Weekly"
+
+schedule:
+  day: "monday"
+  hour: 6
+  minute: 0
+
+output:
+  directory: "output"
+  keep_history: true
+  page_background: "#f5f1e8"
+  web_host: "0.0.0.0"
+  web_port: 5000
+
+database:
+  path: "data/digest.db"
+
+lookback_days: 7
+max_articles_per_feed: 10
+max_articles_total: 50

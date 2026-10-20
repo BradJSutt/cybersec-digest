@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>{{ css | safe }}</style>
+</head>
+<body>
+    <div class="page">
+        <header class="masthead">
+            <div class="masthead-rule-top"></div>
+            <div class="masthead-meta">
+                <span>{{ tagline }}</span>
+                <span>{{ week_end }}</span>
+            </div>
+            <h1 class="masthead-title">{{ title }}</h1>
+            <div class="masthead-sub">
+                <span>Week of {{ week_start }} &mdash; {{ week_end }}</span>
+                <span class="masthead-divider">|</span>
+                <span>Issue #{{ issue_number }}</span>
+            </div>
+            <div class="stats">
+                <span class="stat"><strong>{{ total_articles }}</strong> stories</span>
+                <span class="stat-sep">&bull;</span>
+                <span class="stat"><strong>{{ quick_hits|length }}</strong> quick hits</span>
+                <span class="stat-sep">&bull;</span>
+                <span class="stat"><strong>{{ source_count }}</strong> sources</span>
+            </div>
+            <div class="masthead-rule-bottom"></div>
+        </header>
+
+        <main class="content">
+            {% for category, cat_articles in categorized %}
+            <section class="category-section">
+                <h2 class="category-heading">
+                    <span class="category-icon category-icon-{{ category }}"></span>
+                    {{ category_labels[category] }}
+                    <span class="category-count">{{ cat_articles|length }}</span>
+                </h2>
+                <div class="articles">
+                    {% for article in cat_articles %}
+                    <article class="article-card{% if article.id == lead_id %} is-lead{% endif %}">
+                        {% if article.id == lead_id %}
+                        <span class="lead-badge">Lead Story</span>
+                        {% endif %}
+                        {% if article.image_url %}
+                        <div class="article-thumb">
+                            <img src="{{ article.image_url }}" alt="" loading="lazy">
+                        </div>
+                        {% endif %}
+                        <div class="article-content">
+                            <h3 class="article-title">
+                                <a href="{{ article.url }}">{{ article.title }}</a>
+                            </h3>
+                            <p class="article-summary">{{ article.summary }}</p>
+                            <div class="article-footer">
+                                <span class="article-source">{{ article.source }}</span>
+                                <span class="article-date">{{ article.published | timestamp_date }}</span>
+                            </div>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endfor %}
+            {% if quick_hits %}
+            <section class="quick-section">
+                <h2 class="category-heading quick-heading">
+                    <span class="category-icon category-icon-quick"></span>
+                    Quick Hits
+                    <span class="category-count">{{ quick_hits|length }}</span>
+                </h2>
+                <ul class="quick-list">
+                    {% for article in quick_hits %}
+                    <li class="quick-item">
+                        <a href="{{ article.url }}">{{ article.title }}</a>
+                        <span class="quick-meta">{{ article.source }} &middot; {{ article.published | timestamp_date }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>
