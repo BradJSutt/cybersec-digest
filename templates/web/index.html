@@ -1,0 +1,63 @@
+{% extends "web/base.html" %}
+{% from "web/_macros.html" import issue_card with context %}
+
+{% block title %}{{ site_title }} — This week's security briefing{% endblock %}
+{% block description %}The latest cybersecurity and technology stories, curated into one weekly briefing.{% endblock %}
+
+{% block content %}
+<section class="container page-top">
+    <div class="eyebrow-row">
+        <span class="eyebrow">This week's briefing</span>
+        {% if issue %}
+        <span class="eyebrow-meta">
+            Issue #{{ issue.id }}
+            <span class="dot" aria-hidden="true"></span>
+            {{ issue.week_start | nicedate("%B %d") }} &ndash; {{ issue.week_end | nicedate("%B %d, %Y") }}
+        </span>
+        {% endif %}
+    </div>
+    {% include "web/_hero.html" %}
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">The digest</span>
+            <h2>Stories &amp; signals</h2>
+        </div>
+        <p class="section-sub">{{ total_articles }} stories from {{ source_count }} sources, curated and categorised.</p>
+    </div>
+    {% include "web/_stream.html" %}
+</section>
+
+{% if recent_issues %}
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">Archive</span>
+            <h2>Past issues</h2>
+        </div>
+        <a class="text-link" href="{{ url_for('archive') }}">View all {{ issue_total }} issues &rarr;</a>
+    </div>
+    <div class="issue-grid issue-grid-compact">
+        {% for i in recent_issues %}
+        {{ issue_card(i) }}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="container section">
+    <div class="cta-band">
+        <div class="cta-copy">
+            <span class="eyebrow eyebrow-light">Stay ahead</span>
+            <h2>One briefing. Every week.</h2>
+            <p>Get the digest as a PDF in your inbox, or catch up here any time. No noise, no filler.</p>
+        </div>
+        <div class="cta-actions">
+            <a class="btn btn-light" href="{{ url_for('subscribe') }}">Subscribe to the digest</a>
+            <a class="btn btn-outline-light" href="{{ url_for('archive') }}">Browse the archive</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

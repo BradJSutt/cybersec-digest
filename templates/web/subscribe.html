@@ -1,0 +1,62 @@
+{% extends "web/base.html" %}
+
+{% block title %}Subscribe — {{ site_title }}{% endblock %}
+{% block description %}Get the weekly cybersecurity briefing as a print-ready PDF.{% endblock %}
+
+{% block content %}
+<section class="container page-hero">
+    <span class="eyebrow">Subscribe</span>
+    <h1>One email a week.<br>Everything that mattered.</h1>
+    <p class="lede">Join {{ subscriber_count }} reader{{ '' if subscriber_count == 1 else 's' }} getting the print-ready {{ site_title }} PDF every week.</p>
+</section>
+
+<section class="container section section-tight">
+    <div class="subscribe-grid">
+        <div class="subscribe-copy">
+            <h2>What you get</h2>
+            <ul class="check-list">
+                <li>Every critical vulnerability and zero-day that actually mattered</li>
+                <li>Breaches, APT activity and the week's cyber news, already filtered</li>
+                <li>AI security, geopolitics, research and the best commentary</li>
+                <li>Quick hits for the stories that don't need a paragraph</li>
+                <li>A clean, print-ready PDF — plus the same issue on this site</li>
+            </ul>
+
+            <div class="callout">
+                <h3>Delivery status</h3>
+                <p>Email delivery is being wired into our internal mail relay. Subscribe now and you'll be queued for the next send — no action needed after that.</p>
+            </div>
+
+            <p class="fineprint">We only use your address to send the digest. Unsubscribe any time using the form below.</p>
+        </div>
+
+        <div class="form-card">
+            <h2 class="form-title">Join the list</h2>
+            <p class="form-sub">Free, weekly, no noise.</p>
+            <form method="post" action="{{ url_for('subscribe') }}" class="stack" novalidate>
+                <div class="field">
+                    <label for="email">Email address</label>
+                    <input class="input" type="email" id="email" name="email" placeholder="you@company.com" autocomplete="email" required>
+                </div>
+                <div class="hp" aria-hidden="true">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                <button class="btn btn-primary btn-block" type="submit">Subscribe to the digest</button>
+                <p class="form-note">By subscribing you agree to receive the weekly digest. One click to leave, any time.</p>
+            </form>
+
+            <details class="unsub">
+                <summary>Already subscribed? Unsubscribe</summary>
+                <form method="post" action="{{ url_for('unsubscribe') }}" class="stack">
+                    <div class="field">
+                        <label for="unsub-email">Email address</label>
+                        <input class="input" type="email" id="unsub-email" name="email" placeholder="you@company.com" autocomplete="email" required>
+                    </div>
+                    <button class="btn btn-ghost btn-block" type="submit">Remove me from the list</button>
+                </form>
+            </details>
+        </div>
+    </div>
+</section>
+{% endblock %}

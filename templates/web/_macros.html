@@ -1,0 +1,54 @@
+{% macro chip(category, labels) -%}
+<span class="chip cat-{{ category }}">{{ labels.get(category, category|title) }}</span>
+{%- endmacro %}
+
+
+{% macro card(a, labels) %}
+<article class="card">
+    <a class="card-media{% if not a.image_url %} is-fallback cat-{{ a.category }}{% endif %}"
+       href="{{ url_for('track_click', article_id=a.id) }}" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+        {% if a.image_url %}
+        <img src="{{ a.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"
+             onerror="this.closest('.card-media').classList.add('is-fallback','cat-{{ a.category }}');this.remove();">
+        {% endif %}
+        <span class="media-initials">{{ a.source | initials }}</span>
+    </a>
+    <div class="card-body">
+        <div class="card-top">
+            {{ chip(a.category, labels) }}
+            <time class="card-time" datetime="{{ a.published | datefmt('%Y-%m-%d') }}">{{ a.published | timeago }}</time>
+        </div>
+        <h3 class="card-title">
+            <a href="{{ url_for('track_click', article_id=a.id) }}" target="_blank" rel="noopener">{{ a.title | clean_title }}</a>
+        </h3>
+        <p class="card-summary">{{ (a.summary or ('Read the full story at ' ~ a.source ~ '.')) | stripicons }}</p>
+        <div class="card-meta">
+            <span class="card-source">{{ a.source }}</span>
+            <span class="dot" aria-hidden="true"></span>
+            <time datetime="{{ a.published | datefmt('%Y-%m-%d') }}">{{ a.published | datefmt('%b %d, %Y') }}</time>
+        </div>
+    </div>
+</article>
+{% endmacro %}
+
+
+{% macro issue_card(i) %}
+<article class="issue-card">
+    <span class="issue-ghost" aria-hidden="true">{{ "%02d"|format(i.id) }}</span>
+    <div class="issue-top">
+        <span class="issue-label">Issue</span>
+        <h3 class="issue-title">No. {{ i.id }}</h3>
+        <span class="issue-range">{{ i.week_start | nicedate("%b %d") }} &ndash; {{ i.week_end | nicedate("%b %d, %Y") }}</span>
+    </div>
+    <div class="issue-meta">
+        <span>{{ i.story_count }} stories</span>
+        {% if i.pdf_size %}<span>{{ i.pdf_size }} PDF</span>{% endif %}
+    </div>
+    <div class="issue-actions">
+        <a class="btn btn-sm btn-ghost" href="{{ url_for('issue', issue_id=i.id) }}">Read online</a>
+        {% if i.has_pdf %}
+        <a class="btn btn-sm btn-dark" href="{{ url_for('download', issue_id=i.id) }}">Download PDF</a>
+        {% endif %}
+    </div>
+</article>
+{% endmacro %}

@@ -1,0 +1,102 @@
+{% from "web/_macros.html" import chip with context %}
+<div class="hero-grid">
+    <article class="hero-lead{% if lead and not lead.image_url %} is-textonly{% endif %}">
+        {% if lead %}
+        <div class="hero-media{% if not lead.image_url %} is-fallback cat-{{ lead.category }}{% endif %}">
+            {% if lead.image_url %}
+            <img src="{{ lead.image_url }}" alt="" referrerpolicy="no-referrer"
+                 onerror="this.closest('.hero-media').classList.add('is-fallback','cat-{{ lead.category }}');this.remove();">
+            {% endif %}
+            <span class="hero-initials">{{ lead.source | initials }}</span>
+            <span class="hero-scrim" aria-hidden="true"></span>
+            <div class="hero-media-meta">
+                {{ chip(lead.category, category_labels) }}
+                <span class="hero-source">{{ lead.source }}</span>
+            </div>
+        </div>
+        <div class="hero-body">
+            <p class="hero-kicker">Lead story</p>
+            <h1 class="hero-title">
+                <a href="{{ url_for('track_click', article_id=lead.id) }}" target="_blank" rel="noopener">{{ lead.title | clean_title }}</a>
+            </h1>
+            <p class="hero-summary">{{ (lead.summary or ('Read the full story at ' ~ lead.source ~ '.')) | stripicons }}</p>
+            <div class="hero-meta">
+                <time datetime="{{ lead.published | datefmt('%Y-%m-%d') }}">{{ lead.published | datefmt('%B %d, %Y') }}</time>
+            </div>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="{{ url_for('track_click', article_id=lead.id) }}" target="_blank" rel="noopener">
+                    Read the full story
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                {% if issue and issue.id %}
+                <a class="btn btn-ghost" href="{{ url_for('download', issue_id=issue.id) }}">Download PDF</a>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="hero-body hero-empty">
+            <p class="hero-kicker">Nothing here yet</p>
+            <h1 class="hero-title">The next briefing is being compiled.</h1>
+            <p class="hero-summary">Run <code>python run.py all</code> to pull the feeds and generate the first digest, then refresh this page.</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="{{ url_for('archive') }}">Browse the archive</a>
+            </div>
+        </div>
+        {% endif %}
+    </article>
+
+    <aside class="hero-aside">
+        <section class="panel">
+            <div class="panel-head">
+                <h2>In this issue</h2>
+                {% if issue and issue.id %}<span class="panel-badge">#{{ issue.id }}</span>{% endif %}
+            </div>
+            {% if counts %}
+            <ul class="meter">
+                {% for cat, n in counts.items() %}
+                <li class="meter-row cat-{{ cat }}">
+                    <span class="meter-label"><span class="cat-dot" aria-hidden="true"></span>{{ category_labels.get(cat, cat|title) }}</span>
+                    <span class="meter-count">{{ n }}</span>
+                    <span class="meter-bar" aria-hidden="true"><span style="width: {{ ((n / total_articles) * 100) | round(1) }}%"></span></span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="muted">No stories collected yet.</p>
+            {% endif %}
+            <div class="panel-stats">
+                <div class="stat"><strong>{{ total_articles }}</strong><span>stories</span></div>
+                <div class="stat"><strong>{{ source_count }}</strong><span>sources</span></div>
+                <div class="stat"><strong>{{ quick_hits|length }}</strong><span>quick hits</span></div>
+            </div>
+            {% if issue and issue.week_start %}
+            <p class="panel-dates">Week of {{ issue.week_start | nicedate("%b %d") }} &ndash; {{ issue.week_end | nicedate("%b %d, %Y") }}</p>
+            {% endif %}
+            {% if issue and issue.id %}
+            <a class="btn btn-dark btn-block" href="{{ url_for('download', issue_id=issue.id) }}">Download issue PDF</a>
+            {% endif %}
+        </section>
+
+        {% if quick_hits %}
+        <section class="panel panel-quick">
+            <div class="panel-head">
+                <h2>Quick hits</h2>
+                <span class="panel-badge">{{ quick_hits|length }}</span>
+            </div>
+            <ol class="quick-mini">
+                {% for a in quick_hits[:6] %}
+                <li>
+                    <a href="{{ url_for('track_click', article_id=a.id) }}" target="_blank" rel="noopener">{{ a.title | clean_title }}</a>
+                    <span class="quick-mini-meta">
+                        <span class="quick-mini-src">{{ a.source }}</span>
+                        <span class="dot" aria-hidden="true"></span>
+                        <span>{{ a.published | timeago }}</span>
+                    </span>
+                </li>
+                {% endfor %}
+            </ol>
+            <a class="text-link" href="#quick-hits">See all {{ quick_hits|length }} quick hits &rarr;</a>
+        </section>
+        {% endif %}
+    </aside>
+</div>

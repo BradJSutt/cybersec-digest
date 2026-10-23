@@ -24,7 +24,10 @@ class Emailer:
             print(f"PDF not found: {pdf_path}")
             return
 
-        subscribers = self.config.get("subscribers", [])
+        subscribers = self.config.get("subscribers", []) or []
+        subscribers = list(dict.fromkeys(
+            [s.strip() for s in list(subscribers) + self.storage.get_active_subscribers() if s and str(s).strip()]
+        ))
         if not subscribers:
             print("No subscribers configured.")
             return

@@ -1,0 +1,129 @@
+{% extends "web/base.html" %}
+
+{% block title %}About — {{ site_title }}{% endblock %}
+{% block description %}How {{ site_title }} collects, curates and publishes the weekly security briefing.{% endblock %}
+
+{% block content %}
+<section class="container page-hero">
+    <span class="eyebrow">About the digest</span>
+    <h1>A quieter way to<br>keep up with security.</h1>
+    <p class="lede">{{ tagline }}. Every week we read {{ source_total }} public security feeds, pull out what actually matters, and publish one calm, readable briefing — as a PDF and on this site.</p>
+    <div class="stat-row">
+        <div class="stat"><strong>{{ source_total }}</strong><span>feeds monitored</span></div>
+        <div class="stat"><strong>Weekly</strong><span>publication cadence</span></div>
+        <div class="stat"><strong>{{ subscriber_count }}</strong><span>readers subscribed</span></div>
+    </div>
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">The pipeline</span>
+            <h2>How an issue is made</h2>
+        </div>
+    </div>
+    <div class="step-grid">
+        <article class="step-card">
+            <span class="step-no">01</span>
+            <h3>Collect</h3>
+            <p>A scheduled job pulls the latest entries from every configured RSS and Atom feed, dropping anything older than the lookback window and de-duplicating by URL.</p>
+        </article>
+        <article class="step-card">
+            <span class="step-no">02</span>
+            <h3>Curate</h3>
+            <p>Each story is summarised from its own page, classified into a section, and ranked. Critical and actively exploited vulnerabilities always surface first.</p>
+        </article>
+        <article class="step-card">
+            <span class="step-no">03</span>
+            <h3>Publish</h3>
+            <p>The same curated dataset renders two ways: a print-ready weekly PDF and this web edition. No shadow copies, no drift between formats.</p>
+        </article>
+    </div>
+</section>
+
+<section class="container section">
+    <div class="two-col">
+        <div class="prose">
+            <span class="eyebrow">What's inside</span>
+            <h2>Eleven sections, one scan.</h2>
+            <p>Stories are grouped so you can read top-down or jump straight to what you care about. Articles that fit multiple sections land in the highest-priority one.</p>
+            <div class="chip-cloud">
+                {% for cat in ["cves", "news", "ai", "war", "research", "blogs", "podcasts", "tools", "community", "sans", "weird"] %}
+                <span class="chip cat-{{ cat }}">{{ category_labels.get(cat, cat|title) }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="prose">
+            <span class="eyebrow">Privacy</span>
+            <h2>Local, private, no tracking pixels.</h2>
+            <p>This site runs on a local server. Subscriber addresses are stored in a single SQLite file and are only used for digest delivery. Link clicks are counted in aggregate to understand which sections readers value — never tied to a person.</p>
+            <p class="muted">No third-party analytics, no advertising, no data resale.</p>
+        </div>
+    </div>
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">Sources</span>
+            <h2>Feeds we follow</h2>
+        </div>
+        <p class="section-sub">All feeds are public. The list is configurable in <code>config.yaml</code>.</p>
+    </div>
+    <div class="source-table" role="table" aria-label="Monitored feeds">
+        <div class="source-row source-head" role="row">
+            <span role="columnheader">Source</span>
+            <span role="columnheader">Section</span>
+            <span role="columnheader">Feed</span>
+        </div>
+        {% for feed in feeds %}
+        <div class="source-row" role="row">
+            <span class="source-name" role="cell">{{ feed.name or feed.url }}</span>
+            <span role="cell"><span class="chip cat-{{ feed.category or 'news' }}">{{ category_labels.get(feed.category or 'news', (feed.category or 'news')|title) }}</span></span>
+            <span role="cell" class="source-link"><a href="{{ feed.url }}" target="_blank" rel="noopener">{{ feed.url | replace('https://', '') | truncate(42) }}</a></span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">Questions</span>
+            <h2>FAQ</h2>
+        </div>
+    </div>
+    <div class="faq">
+        <details>
+            <summary>How often is it published?</summary>
+            <p>Once a week. The scheduler runs Monday morning by default; the exact day and time live in <code>config.yaml</code>.</p>
+        </details>
+        <details>
+            <summary>Can I suggest a feed?</summary>
+            <p>Yes — feeds are plain YAML entries. Add a name, URL and category, then the next run picks it up automatically.</p>
+        </details>
+        <details>
+            <summary>Is there a cost?</summary>
+            <p>No. The digest is an internal project built for the networking team and released as open-source boilerplate.</p>
+        </details>
+        <details>
+            <summary>How do I unsubscribe?</summary>
+            <p>Use the unsubscribe form on the <a href="{{ url_for('subscribe') }}">subscribe page</a>. It removes you immediately.</p>
+        </details>
+    </div>
+</section>
+
+<section class="container section">
+    <div class="cta-band">
+        <div class="cta-copy">
+            <span class="eyebrow eyebrow-light">Try it</span>
+            <h2>Read this week's issue.</h2>
+            <p>See the current briefing, or join the list and get it weekly.</p>
+        </div>
+        <div class="cta-actions">
+            <a class="btn btn-light" href="{{ url_for('index') }}">This week</a>
+            <a class="btn btn-outline-light" href="{{ url_for('subscribe') }}">Subscribe</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

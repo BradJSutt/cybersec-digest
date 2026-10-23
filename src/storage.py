@@ -46,6 +46,13 @@ class Storage:
                     FOREIGN KEY (article_id) REFERENCES articles(id)
                 );
 
+                CREATE TABLE IF NOT EXISTS subscribers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE NOT NULL,
+                    created_at REAL NOT NULL,
+                    active INTEGER NOT NULL DEFAULT 1
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_articles_published ON articles(published);
                 CREATE INDEX IF NOT EXISTS idx_articles_category ON articles(category);
                 CREATE INDEX IF NOT EXISTS idx_clicks_article ON clicks(article_id);
@@ -78,6 +85,24 @@ class Storage:
                 (cutoff, limit)
             ).fetchall()
             return [dict(r) for r in rows]
+
+    def get_articles_between(self, start_ts, end_ts, limit=200):
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT * FROM articles
+                   WHERE published >= ? AND published <= ?
+                   ORDER BY published DESC LIMIT ?""",
+                (start_ts, end_ts, limit)
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def get_article_count_between(self, start_ts, end_ts):
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) AS n FROM articles WHERE published >= ? AND published <= ?",
+                (start_ts, end_ts)
+            ).fetchone()
+            return row["n"]
 
     def update_summary(self, article_id, summary, category):
         with self._connect() as conn:
@@ -117,10 +142,32 @@ class Storage:
 
     def create_issue(self, week_start, week_end, pdf_path=""):
         with self._connect() as conn:
-            conn.execute(
+            row = conn.execute(
+                """SELECT id FROM issues WHERE week_start = ? AND week_end = ?
+                   ORDER BY id DESC LIMIT 1""",
+                (week_start, week_end),
+            ).fetchone()
+            now = time.time()
+            if row:
+                conn.execute(
+                    "UPDATE issues SET pdf_path = ?, created_at = ? WHERE id = ?",
+                    (pdf_path, now, row["id"]),
+                )
+                return row["id"]
+            cur = conn.execute(
                 "INSERT INTO issues (week_start, week_end, pdf_path, created_at) VALUES (?, ?, ?, ?)",
-                (week_start, week_end, pdf_path, time.time())
+                (week_start, week_end, pdf_path, now)
             )
+            return cur.lastrowid
+
+    def get_issue_by_week(self, week_start, week_end):
+        with self._connect() as conn:
+            row = conn.execute(
+                """SELECT * FROM issues WHERE week_start = ? AND week_end = ?
+                   ORDER BY id DESC LIMIT 1""",
+                (week_start, week_end),
+            ).fetchone()
+            return dict(row) if row else None
 
     def get_latest_issue(self):
         with self._connect() as conn:
@@ -129,7 +176,55 @@ class Storage:
             ).fetchone()
             return dict(row) if row else None
 
+    def get_issue_by_id(self, issue_id):
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM issues WHERE id = ?", (issue_id,)).fetchone()
+            return dict(row) if row else None
+
     def get_all_issues(self):
         with self._connect() as conn:
             rows = conn.execute("SELECT * FROM issues ORDER BY created_at DESC").fetchall()
             return [dict(r) for r in rows]
+
+    def get_archive_issues(self):
+        with self._connect() as conn:
+            rows = conn.execute(
+                """SELECT * FROM issues
+                   WHERE id IN (SELECT MAX(id) FROM issues GROUP BY week_start, week_end)
+                   ORDER BY week_end DESC, id DESC"""
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def add_subscriber(self, email):
+        with self._connect() as conn:
+            row = conn.execute("SELECT id, active FROM subscribers WHERE email = ?", (email,)).fetchone()
+            if row:
+                if row["active"]:
+                    return "exists"
+                conn.execute("UPDATE subscribers SET active = 1 WHERE id = ?", (row["id"],))
+                return "reactivated"
+            conn.execute(
+                "INSERT INTO subscribers (email, created_at, active) VALUES (?, ?, 1)",
+                (email, time.time())
+            )
+            return "added"
+
+    def deactivate_subscriber(self, email):
+        with self._connect() as conn:
+            cursor = conn.execute(
+                "UPDATE subscribers SET active = 0 WHERE email = ? AND active = 1", (email,)
+            )
+            return cursor.rowcount > 0
+
+    def get_active_subscribers(self):
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT email FROM subscribers WHERE active = 1 ORDER BY created_at"
+            ).fetchall()
+            return [r["email"] for r in rows]
+
+    def get_subscriber_count(self):
+        with self._connect() as conn:
+            return conn.execute(
+                "SELECT COUNT(*) AS n FROM subscribers WHERE active = 1"
+            ).fetchone()["n"]

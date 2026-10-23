@@ -229,6 +229,7 @@ class Summarizer:
             return ""
         text = re.sub(r"<[^>]+>", "", text)
         text = unescape(text)
+        text = re.sub(r"[\ue000-\uf8ff\u200b-\u200d\ufeff\ufffd]", "", text)
         text = re.sub(r"\s+", " ", text)
         return text.strip()
 
@@ -237,5 +238,6 @@ class Summarizer:
         text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
         text = re.sub(r"<[^>]+>", " ", text)
         text = unescape(text)
+        text = re.sub(r"[\ue000-\uf8ff\u200b-\u200d\ufeff\ufffd]", "", text)
         text = re.sub(r"\s+", " ", text)
         return text.strip()

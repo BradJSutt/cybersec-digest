@@ -2,60 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
+    <title>{{ title }} — Issue {{ issue_number }}</title>
     <style>{{ css | safe }}</style>
 </head>
 <body>
-    <div class="page">
+    <div class="paper">
         <header class="masthead">
-            <div class="masthead-rule-top"></div>
-            <div class="masthead-meta">
-                <span>{{ tagline }}</span>
-                <span>{{ week_end }}</span>
+            <div class="masthead-flag">
+                <span>Issue {{ "%02d"|format(issue_number) }}</span>
+                <span>{{ week_start }} &ndash; {{ week_end }}</span>
             </div>
-            <h1 class="masthead-title">{{ title }}</h1>
-            <div class="masthead-sub">
-                <span>Week of {{ week_start }} &mdash; {{ week_end }}</span>
-                <span class="masthead-divider">|</span>
-                <span>Issue #{{ issue_number }}</span>
+            <div class="brand">
+                <span class="brand-mark">CS</span>
+                <h1 class="brand-title">{{ title }}</h1>
+                <p class="brand-tagline">{{ tagline }}</p>
             </div>
             <div class="stats">
                 <span class="stat"><strong>{{ total_articles }}</strong> stories</span>
-                <span class="stat-sep">&bull;</span>
+                <span class="stat-sep" aria-hidden="true"></span>
                 <span class="stat"><strong>{{ quick_hits|length }}</strong> quick hits</span>
-                <span class="stat-sep">&bull;</span>
+                <span class="stat-sep" aria-hidden="true"></span>
                 <span class="stat"><strong>{{ source_count }}</strong> sources</span>
             </div>
-            <div class="masthead-rule-bottom"></div>
         </header>
 
         <main class="content">
-            {% for category, cat_articles in categorized %}
-            <section class="category-section">
-                <h2 class="category-heading">
-                    <span class="category-icon category-icon-{{ category }}"></span>
-                    {{ category_labels[category] }}
-                    <span class="category-count">{{ cat_articles|length }}</span>
+            {% if lead %}
+            <section class="lead">
+                <a class="lead-media cat-{{ lead.category }}" href="{{ lead.url }}">
+                    <span class="media-initials">{{ lead.source | initials }}</span>
+                    {% if lead.image_url %}
+                    <img src="{{ lead.image_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">
+                    {% endif %}
+                    <span class="lead-badge">Lead story</span>
+                </a>
+                <div class="lead-body">
+                    <div class="kicker">
+                        <span class="kicker-dot cat-{{ lead.category }}"></span>
+                        {{ category_labels.get(lead.category, lead.category|title) }}
+                        <span class="kicker-sep">&middot;</span>
+                        {{ lead.source }}
+                        <span class="kicker-sep">&middot;</span>
+                        {{ lead.published | timestamp_date }}
+                    </div>
+                    <h2 class="lead-title">
+                        <a href="{{ lead.url }}">{{ lead.title | clean_title }}</a>
+                    </h2>
+                    <p class="lead-summary">{{ (lead.summary or ('Read the full story at ' ~ lead.source ~ '.')) | stripicons }}</p>
+                    <div class="lead-more">
+                        <a href="{{ lead.url }}">Read the full story &rarr;</a>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            {% for category, cat_articles in sections %}
+            <section class="section">
+                <h2 class="section-head">
+                    <span class="section-dot cat-{{ category }}" aria-hidden="true"></span>
+                    <span class="section-name">{{ category_labels[category] }}</span>
+                    <span class="section-count">{{ cat_articles|length }}</span>
                 </h2>
-                <div class="articles">
+                <div class="cards">
                     {% for article in cat_articles %}
-                    <article class="article-card{% if article.id == lead_id %} is-lead{% endif %}">
-                        {% if article.id == lead_id %}
-                        <span class="lead-badge">Lead Story</span>
-                        {% endif %}
-                        {% if article.image_url %}
-                        <div class="article-thumb">
-                            <img src="{{ article.image_url }}" alt="" loading="lazy">
-                        </div>
-                        {% endif %}
-                        <div class="article-content">
-                            <h3 class="article-title">
-                                <a href="{{ article.url }}">{{ article.title }}</a>
+                    <article class="card">
+                        <a class="card-media cat-{{ article.category }}" href="{{ article.url }}" tabindex="-1" aria-hidden="true">
+                            <span class="media-initials">{{ article.source | initials }}</span>
+                            {% if article.image_url %}
+                            <img src="{{ article.image_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">
+                            {% endif %}
+                        </a>
+                        <div class="card-body">
+                            <h3 class="card-title">
+                                <a href="{{ article.url }}">{{ article.title | clean_title }}</a>
                             </h3>
-                            <p class="article-summary">{{ article.summary }}</p>
-                            <div class="article-footer">
-                                <span class="article-source">{{ article.source }}</span>
-                                <span class="article-date">{{ article.published | timestamp_date }}</span>
+                            <p class="card-summary">{{ (article.summary or ('Read the full story at ' ~ article.source ~ '.')) | stripicons }}</p>
+                            <div class="card-meta">
+                                <span>{{ article.source }}</span>
+                                <span class="meta-sep">&middot;</span>
+                                <span>{{ article.published | timestamp_date }}</span>
                             </div>
                         </div>
                     </article>
@@ -63,23 +88,32 @@
                 </div>
             </section>
             {% endfor %}
+
             {% if quick_hits %}
-            <section class="quick-section">
-                <h2 class="category-heading quick-heading">
-                    <span class="category-icon category-icon-quick"></span>
-                    Quick Hits
-                    <span class="category-count">{{ quick_hits|length }}</span>
+            <section class="section quick-section">
+                <h2 class="section-head">
+                    <span class="section-dot cat-quick" aria-hidden="true"></span>
+                    <span class="section-name">Quick Hits</span>
+                    <span class="section-count">{{ quick_hits|length }}</span>
                 </h2>
-                <ul class="quick-list">
+                <ol class="quick-grid">
                     {% for article in quick_hits %}
                     <li class="quick-item">
-                        <a href="{{ article.url }}">{{ article.title }}</a>
-                        <span class="quick-meta">{{ article.source }} &middot; {{ article.published | timestamp_date }}</span>
+                        <span class="quick-num">{{ "%02d"|format(loop.index) }}</span>
+                        <div class="quick-body">
+                            <a class="quick-title" href="{{ article.url }}">{{ article.title | clean_title }}</a>
+                            <span class="quick-meta">{{ article.source }} &middot; {{ article.published | timestamp_date }}</span>
+                        </div>
                     </li>
                     {% endfor %}
-                </ul>
+                </ol>
             </section>
             {% endif %}
+
+            <footer class="colophon">
+                <span>{{ title }} &middot; Issue {{ issue_number }} &middot; Curated from {{ source_count }} public feeds</span>
+                <span>Generated {{ generated_at }}</span>
+            </footer>
         </main>
     </div>
 </body>

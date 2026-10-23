@@ -1,0 +1,15 @@
+{% extends "web/base.html" %}
+
+{% block title %}Not found — {{ site_title }}{% endblock %}
+
+{% block content %}
+<section class="container page-hero notfound">
+    <span class="eyebrow">404</span>
+    <h1>That page slipped<br>through the cracks.</h1>
+    <p class="lede">The link may be old, or the issue may never have been published. Try the archive or head back to this week's briefing.</p>
+    <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('index') }}">This week's issue</a>
+        <a class="btn btn-ghost" href="{{ url_for('archive') }}">Browse the archive</a>
+    </div>
+</section>
+{% endblock %}

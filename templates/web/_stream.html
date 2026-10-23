@@ -1,0 +1,42 @@
+{% from "web/_macros.html" import card with context %}
+{% if sections %}
+<div class="stream">
+    {% for category, arts in sections %}
+    <section class="cat-block" id="{{ category }}">
+        <div class="cat-head">
+            <h3><span class="cat-dot cat-{{ category }}" aria-hidden="true"></span>{{ category_labels.get(category, category|title) }}</h3>
+            <span class="cat-count">{{ arts|length }}</span>
+            <span class="cat-line" aria-hidden="true"></span>
+        </div>
+        <div class="card-grid">
+            {% for a in arts %}
+            {{ card(a, category_labels) }}
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <h3>No stories in this window yet</h3>
+    <p>Pull the latest feeds with <code>python run.py fetch</code>, then summarize and render with <code>python run.py render</code>.</p>
+</div>
+{% endif %}
+
+{% if quick_hits %}
+<section class="cat-block quick-block" id="quick-hits">
+    <div class="cat-head">
+        <h3><span class="cat-dot cat-quick" aria-hidden="true"></span>Quick Hits</h3>
+        <span class="cat-count">{{ quick_hits|length }}</span>
+        <span class="cat-line" aria-hidden="true"></span>
+    </div>
+    <ol class="quick-list">
+        {% for a in quick_hits %}
+        <li class="quick-row">
+            <a class="quick-title" href="{{ url_for('track_click', article_id=a.id) }}" target="_blank" rel="noopener">{{ a.title | clean_title }}</a>
+            <span class="quick-meta">{{ a.source }} <span class="dot" aria-hidden="true"></span> {{ a.published | timeago }}</span>
+        </li>
+        {% endfor %}
+    </ol>
+</section>
+{% endif %}

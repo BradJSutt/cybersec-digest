@@ -1,0 +1,54 @@
+{% extends "web/base.html" %}
+{% from "web/_macros.html" import issue_card with context %}
+
+{% block title %}Archive — {{ site_title }}{% endblock %}
+{% block description %}Browse every published issue of {{ site_title }}.{% endblock %}
+
+{% block content %}
+<section class="container page-hero">
+    <span class="eyebrow">Archive</span>
+    <h1>Every briefing,<br>in one place.</h1>
+    <p class="lede">Past issues of {{ site_title }}, newest first. Read them online or download the print-ready PDF.</p>
+    <div class="stat-row">
+        <div class="stat"><strong>{{ issue_count }}</strong><span>issues archived</span></div>
+        <div class="stat"><strong>{{ total_stories }}</strong><span>stories published</span></div>
+        <div class="stat"><strong>{{ subscriber_count }}</strong><span>subscribers</span></div>
+    </div>
+</section>
+
+<section class="container section section-tight">
+    {% if issues %}
+        {% for year, year_issues in years %}
+        <div class="year-block">
+            <div class="year-head">
+                <h2>{{ year }}</h2>
+                <span class="cat-line" aria-hidden="true"></span>
+                <span class="year-count">{{ year_issues|length }} issue{{ '' if year_issues|length == 1 else 's' }}</span>
+            </div>
+            <div class="issue-grid">
+                {% for i in year_issues %}
+                {{ issue_card(i) }}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <h3>Nothing archived yet</h3>
+        <p>Generate the first issue with <code>python run.py all</code> and it will appear here.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="container section">
+    <div class="cta-band cta-band-slim">
+        <div class="cta-copy">
+            <span class="eyebrow eyebrow-light">Never miss an issue</span>
+            <h2>Get the weekly PDF.</h2>
+        </div>
+        <div class="cta-actions">
+            <a class="btn btn-light" href="{{ url_for('subscribe') }}">Subscribe</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

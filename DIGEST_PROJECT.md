@@ -229,9 +229,9 @@ cybersec-digest/
 - **Full-Text Extraction** — Readability-based article body extraction for better summarization input.
 - **Per-User Feed Preferences** — Let subscribers opt in/out of specific categories or sources.
 - **Slack/Teams Webhook Delivery** — Push digest summaries to chat channels.
-- **Archive Page** — Browse past issues through the web UI.
+- **Archive Page** — Browse past issues through the web UI. ✅
 - **Docker Image** — One-command deployment.
-- **Subscription Management UI** — Self-service email subscription/unsubscription.
+- **Subscription Management UI** — Self-service email subscription/unsubscription. ✅
 - **Image Proxy & Caching** — Reliable thumbnail embedding.
 - **OPML Import** — Bulk feed list import.
 
@@ -271,6 +271,8 @@ cybersec-digest/
 | 2026-10-19 | Layout/pagination fixes. Inlined CSS into HTML (relative stylesheet was not loading under `set_content`). Fixed multi-column pagination: removed section-level break-avoid, added card-level break-avoid, `column-fill: auto`. Added cream page background underlay via pypdf + reportlab so PDF margins match the paper color. Reduced to 3 articles per category, summaries capped at 2 sentences / 320 chars, footer no longer orphaned. Working tree now 3 pages. | Fix broken feed URLs. Configure SMTP and test email delivery. |
 | 2026-10-19 | Polish pass. Added Quick Hits section (remaining stories as compact links, flows inside the columns to fill the last page), stats strip in masthead (stories / quick hits / sources), Lead Story badge, and PDF footer with page numbers. Replaced pypdf merge_page underlay (duplicated text) with a prepended background rect on each page's content stream. Removed HTML colophon (now in PDF footer) so no orphan page. Synced requirements/config/docs. | Fix broken feed URLs. Configure SMTP and test email delivery. Consider LLM summaries and scoring engine next. |
 | 2026-10-19 | Initialized git repo and pushed to https://github.com/BradJSutt/cybersec-digest (public, `main`). Added `config.yaml.example`, kept `config.yaml`/database/PDFs gitignored. Moved the project guide into the repo root. | Clone on the work machine, then fix broken feed URLs and test SMTP delivery. |
+| 2026-10-23 | Web edition overhaul. Replaced the single Flask page with an editorial site: floating sticky nav, landing page that renders the latest issue as native HTML (lead story, category cards, quick hits, issue stats), archive grouped by year with online issue pages, about page (pipeline, section guide, source list, FAQ), self-serve subscribe/unsubscribe, custom 404 and `/healthz`. Added `subscribers` table + storage methods, merged DB subscribers into `Emailer`, extracted shared curation rules into `src/curation.py`, fixed relative PDF paths in `/download`. Web story cap now follows `max_articles_total` so the site matches the PDF edition. | Wire digest delivery into the internal mail relay; replace dead feeds (CISA 403, Sophos timeout, Linux Security 404); consider LLM summaries and scoring. |
+| 2026-10-23 | PDF redesign to match the web edition. New digest template: centered masthead with monogram and stats; full-width split lead story; single-column sections with two-up card grids, category dots, clamped summaries and image/initials media; three-column numbered Quick Hits; closing colophon. Moved shared cleanup helpers into `src/textutil.py` (icon stripping, initials, URL-free titles) and applied `clean_title` on both PDF and site. Rendering the current 50-story issue now produces a clean 2 pages with no orphaned cards. `create_issue` now updates the existing issue for the same week instead of inserting duplicates. | Watch pagination on heavier weeks; consider filler or a short final-page feature when quick hits run short. |
 
 ---
 

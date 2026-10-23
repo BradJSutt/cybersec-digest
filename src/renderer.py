@@ -1,32 +1,12 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
-
-CATEGORY_ORDER = [
-    "cves", "news", "ai", "war", "research",
-    "blogs", "podcasts", "tools", "community", "sans", "weird",
-]
-
-CATEGORY_LABELS = {
-    "cves": "Critical & CVEs",
-    "news": "Cyber News",
-    "ai": "AI & Security",
-    "war": "Geopolitics & Cyber War",
-    "research": "Research",
-    "blogs": "Blogs & Commentary",
-    "podcasts": "Podcasts & Learning",
-    "tools": "Tools & Open Source",
-    "community": "Community",
-    "sans": "The SANS Corner",
-    "weird": "Weird But Useful",
-}
-
-MAX_ARTICLES_PER_CATEGORY = 3
-MAX_QUICK_HITS = 26
+from .curation import CATEGORY_LABELS, categorize
+from .textutil import clean_title, initials, strip_icons
 
 
 class Renderer:
@@ -38,6 +18,9 @@ class Renderer:
         static_dir = Path(__file__).parent.parent / "static"
         self.jinja_env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.jinja_env.filters["timestamp_date"] = self._timestamp_date
+        self.jinja_env.filters["clean_title"] = clean_title
+        self.jinja_env.filters["initials"] = initials
+        self.jinja_env.filters["stripicons"] = strip_icons
         self.static_dir = static_dir
 
     def _timestamp_date(self, ts):
@@ -51,12 +34,26 @@ class Renderer:
         title = brand.get("title", "CyberSec Weekly")
         tagline = brand.get("tagline", "")
 
-        categorized, quick_hits = self._categorize(articles)
-        total_articles = sum(len(arts) for _, arts in categorized)
-        lead_id = categorized[0][1][0]["id"] if categorized and categorized[0][1] else None
+        categorized, quick_hits = categorize(articles)
+        lead = categorized[0][1][0] if categorized and categorized[0][1] else None
+        lead_id = lead["id"] if lead else None
+
+        if lead_id is not None:
+            sections = [(cat, [a for a in arts if a["id"] != lead_id]) for cat, arts in categorized]
+            sections = [(cat, arts) for cat, arts in sections if arts]
+        else:
+            sections = categorized
+
+        total_articles = len(articles)
         source_count = len({a.get("source", "") for a in articles})
-        issue_num = self.storage.get_latest_issue()
-        issue_number = (issue_num["id"] + 1) if issue_num else brand.get("issue_start", 1)
+        week_start_str = week_start.strftime("%Y-%m-%d")
+        week_end_str = now.strftime("%Y-%m-%d")
+        existing_issue = self.storage.get_issue_by_week(week_start_str, week_end_str)
+        if existing_issue:
+            issue_number = existing_issue["id"]
+        else:
+            latest_issue = self.storage.get_latest_issue()
+            issue_number = (latest_issue["id"] + 1) if latest_issue else brand.get("issue_start", 1)
 
         css_content = (self.static_dir / "styles.css").read_text(encoding="utf-8")
 
@@ -68,9 +65,10 @@ class Renderer:
             week_end=now.strftime("%B %d, %Y"),
             issue_number=issue_number,
             generated_at=now.strftime("%B %d, %Y at %I:%M %p"),
-            categorized=categorized,
-            quick_hits=quick_hits,
+            lead=lead,
             lead_id=lead_id,
+            sections=sections,
+            quick_hits=quick_hits,
             total_articles=total_articles,
             source_count=source_count,
             category_labels=CATEGORY_LABELS,
@@ -85,16 +83,13 @@ class Renderer:
         html_path = output_dir / f"digest-{now.strftime('%Y-%m-%d')}.html"
         html_path.write_text(html_content, encoding="utf-8")
 
-        footer_note = (
-            f"{title}  \u00b7  Compiled from public RSS feeds  \u00b7  "
-            f"{now.strftime('%b %d, %Y')}"
-        )
+        footer_note = f"{title}  \u00b7  Issue {issue_number}"
         asyncio.run(self._html_to_pdf(html_content, pdf_path, footer_note))
         self._apply_page_background(pdf_path)
 
         self.storage.create_issue(
-            week_start=week_start.strftime("%Y-%m-%d"),
-            week_end=now.strftime("%Y-%m-%d"),
+            week_start=week_start_str,
+            week_end=week_end_str,
             pdf_path=pdf_path,
         )
 
@@ -104,7 +99,7 @@ class Renderer:
         from pypdf import PdfReader, PdfWriter
         from pypdf.generic import ContentStream, FloatObject
 
-        page_bg = self.config.get("output", {}).get("page_background", "#f5f1e8")
+        page_bg = self.config.get("output", {}).get("page_background", "#f6f2e7")
         r, g, b = (int(page_bg.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
         reader = PdfReader(pdf_path)
@@ -154,24 +149,5 @@ class Renderer:
                 footer_template=footer,
             )
             await browser.close()
-
-    def _categorize(self, articles):
-        categorized = {cat: [] for cat in CATEGORY_ORDER}
-        for article in articles:
-            cat = article.get("category", "news")
-            if cat not in categorized:
-                cat = "news"
-            categorized[cat].append(article)
-
-        quick_hits = []
-        for cat in categorized:
-            categorized[cat].sort(key=lambda a: a.get("published", 0), reverse=True)
-            quick_hits.extend(categorized[cat][MAX_ARTICLES_PER_CATEGORY:])
-            categorized[cat] = categorized[cat][:MAX_ARTICLES_PER_CATEGORY]
-
-        quick_hits.sort(key=lambda a: a.get("published", 0), reverse=True)
-        quick_hits = quick_hits[:MAX_QUICK_HITS]
-
-        return [(cat, categorized[cat]) for cat in CATEGORY_ORDER if categorized[cat]], quick_hits
 
 

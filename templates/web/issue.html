@@ -1,0 +1,59 @@
+{% extends "web/base.html" %}
+
+{% block title %}Issue #{{ issue.id }} — {{ site_title }}{% endblock %}
+{% block description %}{{ site_title }} issue #{{ issue.id }}, week of {{ issue.week_start | nicedate("%B %d, %Y") }}.{% endblock %}
+
+{% block content %}
+<section class="container page-top">
+    <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="{{ url_for('archive') }}">Archive</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Issue #{{ issue.id }}</span>
+    </nav>
+
+    <div class="issue-banner">
+        <div class="issue-banner-copy">
+            <span class="eyebrow">Issue #{{ issue.id }}</span>
+            <h1 class="issue-heading">Week of {{ issue.week_start | nicedate("%B %d") }}</h1>
+            <p class="issue-sub">
+                {{ issue.week_start | nicedate("%b %d") }} &ndash; {{ issue.week_end | nicedate("%b %d, %Y") }}
+                <span class="dot" aria-hidden="true"></span>
+                {{ total_articles }} stories
+                <span class="dot" aria-hidden="true"></span>
+                {{ source_count }} sources
+            </p>
+        </div>
+        <div class="issue-banner-actions">
+            {% if issue.has_pdf %}
+            <a class="btn btn-primary" href="{{ url_for('download', issue_id=issue.id) }}">Download PDF{% if issue.pdf_size %} ({{ issue.pdf_size }}){% endif %}</a>
+            {% endif %}
+            <a class="btn btn-ghost" href="{{ url_for('archive') }}">All issues</a>
+        </div>
+    </div>
+
+    {% include "web/_hero.html" %}
+</section>
+
+<section class="container section">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">In full</span>
+            <h2>Stories &amp; signals</h2>
+        </div>
+        <p class="section-sub">Rendered for the web from the same data as the PDF edition.</p>
+    </div>
+    {% include "web/_stream.html" %}
+</section>
+
+<section class="container section">
+    <div class="cta-band cta-band-slim">
+        <div class="cta-copy">
+            <span class="eyebrow eyebrow-light">Next issue</span>
+            <h2>Get it delivered weekly.</h2>
+        </div>
+        <div class="cta-actions">
+            <a class="btn btn-light" href="{{ url_for('subscribe') }}">Subscribe</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
